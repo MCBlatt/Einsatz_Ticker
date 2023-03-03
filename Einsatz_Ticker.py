@@ -1,3 +1,4 @@
+# requirements.txt = DLC
 import subprocess
 subprocess.check_output("pip install -r requirements.txt")
 
@@ -68,7 +69,6 @@ def Feuerwehr_im_Einsatz(callback,Ausgewaelt_Bezirk):
         old_events = copy.copy(data) + new_events
         time.sleep(30)
         os.system('cls')
-
 
 # URL
 def URL_Erstellen(Ausgewaelt_Bezirk):
@@ -174,7 +174,6 @@ def Verbindungskontrolle():
 
 # Vorbereitung Start
 if __name__ == "__main__":
-
  os.system('echo off')
  os.system('cls')
  print("Willkommen beim Einsatzmonitor")
@@ -185,13 +184,12 @@ if __name__ == "__main__":
  os.system('cls')
  while True:
   Ausgewaelt_Bereich = waehle_bereich()
-  time.sleep(3)
+  time.sleep(2)
   os.system('cls')
   if Ausgewaelt_Bereich == '2':
    Ausgewaelt_Bezirk = ('')
-   Start(Ausgewaelt_Bezirk, Ausgewaelt_Bereich)
   else:
    Ausgewaelt_Bezirk = waehle_bezirk()
    time.sleep(2)
    os.system('cls')
-   Start(Ausgewaelt_Bezirk, Ausgewaelt_Bereich)
+  Start(Ausgewaelt_Bezirk, Ausgewaelt_Bereich)
