@@ -1,3 +1,4 @@
+import subprocess
 subprocess.check_output("pip install -r requirements.txt")
 
 #DLC
@@ -6,7 +7,6 @@ import os
 import requests
 import json
 import copy
-import subprocess
 import colorama
 from win10toast import ToastNotifier
 from bs4 import BeautifulSoup
