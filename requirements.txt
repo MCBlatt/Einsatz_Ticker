@@ -2,3 +2,4 @@ colorama
 win10toast
 bs4
 prettytable
+requests
