@@ -3,3 +3,8 @@ win10toast
 bs4
 prettytable
 requests
+time
+os
+json
+copy
+datetime
