@@ -16,7 +16,7 @@ from datetime import date
 
 # URL Erstellen für
 def URL_Erstellen_Einsatz_Rueckblicke(Ausgewaelt_Bezirk_NOE):
-    if not Ausgewaelt_Bezirk_NOE == 'X':
+    if Ausgewaelt_Bezirk_NOE != 'X':
         Ausgewaelt_Bezirk_NOE = '01'
         Datum_heute = date.today().strftime("%d.%m.%Y")
         Sekunden_heute = int(time.strftime("%S"))
