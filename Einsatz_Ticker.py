@@ -18,28 +18,32 @@ from datetime import date
 # URL Erstellen für
 def URL_Erstellen_Einsatz_Rueckblicke(Ausgewaelt_Bezirk_NOE):
     if Ausgewaelt_Bezirk_NOE != 'X':
-        Ausgewaelt_Bezirk_NOE = '01'
         Datum_heute = date.today().strftime("%d.%m.%Y")
         Sekunden_heute = int(time.strftime("%S"))
         Minuten_Heute = int(time.strftime('%M'))*60
         Stunden_Heute = (int(time.strftime('%H'))*60)*60
         Sekunden_Tag = Sekunden_heute + Minuten_Heute + Stunden_Heute
-        Url = 'https://www.feuerwehr-krems.at/CodePages/Wastl/WastlMain/Land_EinsatzHistorie.asp?bezirk=' + \
-            Ausgewaelt_Bezirk_NOE + '&' + str(Datum_heute) + str(Sekunden_Tag)
+        Url = 'https://www.feuerwehr-krems.at/CodePages/Wastl/WastlMain/Land_EinsatzHistorie.asp?bezirk=' + Ausgewaelt_Bezirk_NOE + '&' + str(Datum_heute) + str(Sekunden_Tag)
+        print(Url)
         return Url
     else:
         Url = 'https://www.feuerwehr-krems.at/CodePages/Wastl/WastlMain/Land_EinsatzHistorie.asp'
         return Url
 
+# URL Erstellen
+def URL_Erstellen_Feuerwehr_im_Einsatz(Ausgewaelt_Bezirk_NOE, callback):
+    url = f"https://infoscreen.florian10.info/OWS/wastlMobile/getEinsatzAktiv.ashx?callback={callback}&id={Ausgewaelt_Bezirk_NOE}"
+    return url
+
 # Der Ticker
-def Feuerwehr_im_Einsatz_NOE(callback, Ausgewaelt_Bezirk):
+def Feuerwehr_im_Einsatz_NOE(Ausgewaelt_Bezirk_NOE, callback):
+    os.system('cls')
     old_events = []
     completed_events = []
-    nb = 0
     toast = ToastNotifier()
     while True:
         data = requests.get(
-            URL_Erstellen_Feuerwehr_im_Einsatz(Ausgewaelt_Bezirk)).text
+            URL_Erstellen_Feuerwehr_im_Einsatz(Ausgewaelt_Bezirk_NOE, callback)).text
         data = data[len(callback)+1:-1]
         data = json.loads(data)
         data = data["Einsatz"]
@@ -57,14 +61,6 @@ def Feuerwehr_im_Einsatz_NOE(callback, Ausgewaelt_Bezirk):
                 color = translationDict.get(event['a'][0])
                 print(
                     f"{color + event['a']+colorama.Fore.WHITE:<7} {event['m']:<70}{event['o']:<35}{event['t']:<10}{event['d']:<10}")
-            print()
-            if len(completed_events) != 0:
-                print("Fertige Einsaetze:\n")
-                for event in completed_events:
-                    color = translationDict.get(event['a'][0])
-                    print(
-                        f"{color + event['a']+colorama.Fore.WHITE:<7} {event['m']:<70}{event['o']:<35}{event['t']:<10}{event['d']:<10}")
-                print()
             if len(new_events) != 0:
                 print("Neue Einsaetze:\n")
                 for event in new_events:
@@ -77,6 +73,14 @@ def Feuerwehr_im_Einsatz_NOE(callback, Ausgewaelt_Bezirk):
                         duration=10,
                         threaded=True,
                     )
+            print()
+            if len(completed_events) != 0:
+                print("Fertige Einsaetze:\n")
+                for event in completed_events:
+                    color = translationDict.get(event['a'][0])
+                    print(
+                        f"{color + event['a']+colorama.Fore.WHITE:<7} {event['m']:<70}{event['o']:<35}{event['t']:<10}{event['d']:<10}")
+                print()
         else:
             print("Aktuelle Einsaetze:\n")
             for event in data:
@@ -87,17 +91,11 @@ def Feuerwehr_im_Einsatz_NOE(callback, Ausgewaelt_Bezirk):
         time.sleep(30)
         os.system('cls')
 
-# URL Erstellen
-def URL_Erstellen_Feuerwehr_im_Einsatz(Ausgewaelt_Bezirk_NOE, callback):
-    url = f"https://infoscreen.florian10.info/OWS/wastlMobile/getEinsatzAktiv.ashx?callback={callback}&id={Ausgewaelt_Bezirk_NOE}"
-    return url
-
 # Start NÖ
 def Start_NÖ(Ausgewaelt_Bereich_NOE, Ausgewaelt_Bezirk_NOE):
     if Ausgewaelt_Bereich_NOE == '1':
         callback = "jQuery18208820398992410197_1677659902952"
-        url.text = URL_Erstellen_Feuerwehr_im_Einsatz(Ausgewaelt_Bezirk_NOE, callback)
-        Feuerwehr_im_Einsatz_NOE(callback, Ausgewaelt_Bezirk_NOE)
+        Feuerwehr_im_Einsatz_NOE(Ausgewaelt_Bezirk_NOE,callback)
     else:
         URL_Einsatz_Rueckblicke = URL_Erstellen_Einsatz_Rueckblicke(Ausgewaelt_Bezirk_NOE)
         translationDict = {"B": colorama.Fore.RED, "T": colorama.Fore.BLUE,
@@ -119,15 +117,15 @@ def Start_NÖ(Ausgewaelt_Bereich_NOE, Ausgewaelt_Bezirk_NOE):
 
 # Bezirk wählen laufenden_Einsätze
 def Einsatz_Rueckblicke_waehle_Bezirk_NOE():
-    for i, (k, v) in enumerate(RBEZIRKENOE.items()):
+    for i, (k, v) in enumerate(RBEZIRKENOER.items()):
         print(f"{i + 1}. {k}")
     auswahl_Bezirk = int(
-        input("Wählen Sie den Bezirk aus (1 bis " + str(len(RBEZIRKENOE)) + "): "))
-    ausgewaehltes_Bezirk = list(RBEZIRKENOE.items())[auswahl_Bezirk - 1]
+        input("Wählen Sie den Bezirk aus (1 bis " + str(len(RBEZIRKENOER)) + "): "))
+    ausgewaehltes_Bezirk = list(RBEZIRKENOER.items())[auswahl_Bezirk - 1]
     print(f"Du hast {ausgewaehltes_Bezirk[0]} Ausgewält")
     return ausgewaehltes_Bezirk[1]
 
-RBEZIRKENOE = {
+RBEZIRKENOER = {
     "Amstetten": "01",
     "Baden": "02",
     "Bruck/Leitha": "03",
@@ -194,25 +192,26 @@ RBEZIRKENOE = {
 
 # Bereich wählen NÖ
 def waehle_bereich_NOE():
-    print("Gib 1 ein, um die laufenden Einsätze zu sehen")
-    print("Gib 2 ein, um die Einsatz-Rückblicke zu sehen")
-    print("Gib 3 ein, um das Programm zu Beenden")
-    Ausgewaelt_Bereich_NOE = input()
-    if Ausgewaelt_Bereich_NOE == "1":
-        print('Du Hast Feuerwehr im Einsatz ausgewält')
-        time.sleep(2)
-        return Ausgewaelt_Bereich_NOE
-    elif Ausgewaelt_Bereich_NOE == "2":
-        print('Du Hast Einsatz-Rückblicke ausgewält')
-        time.sleep(2)
-        return Ausgewaelt_Bereich_NOE
-    elif Ausgewaelt_Bereich_NOE == "3":
-        print('Tschüss')
-        time.sleep(2)
-        exit()
-    else:
-        print("Bitte wähle nur 1-3 aus")
-        return waehle_bereich_NOE
+    while True:
+        print("Gib 1 ein, um die laufenden Einsätze zu sehen")
+        print("Gib 2 ein, um die Einsatz-Rückblicke zu sehen")
+        print("Gib 3 ein, um das Programm zu Beenden")
+        Ausgewaelt_Bereich_NOE = input()
+        if Ausgewaelt_Bereich_NOE == "1":
+            print('Du Hast laufenden Einsätze ausgewält')
+            time.sleep(2)
+            return Ausgewaelt_Bereich_NOE
+        elif Ausgewaelt_Bereich_NOE == "2":
+            print('Du Hast Einsatz-Rückblicke ausgewält')
+            time.sleep(2)
+            return Ausgewaelt_Bereich_NOE
+        elif Ausgewaelt_Bereich_NOE == "3":
+            print('Tschüss')
+            time.sleep(2)
+            exit()
+        else:
+            print("Bitte wähle nur 1-3 aus")
+            waehle_bereich_NOE
 
 # Auswahl NÖ
 def NOE_Auswahl():
@@ -222,9 +221,9 @@ def NOE_Auswahl():
         Start_NÖ(Ausgewaelt_Bereich_NOE, Ausgewaelt_Bezirk_NOE)
     if Ausgewaelt_Bereich_NOE == '2':
         Ausgewaelt_Bezirk_NOE = Einsatz_Rueckblicke_waehle_Bezirk_NOE()
-        Start_NÖ(Ausgewaelt_Bezirk_NOE, Ausgewaelt_Bereich_NOE)
+        Start_NÖ(Ausgewaelt_Bereich_NOE,Ausgewaelt_Bezirk_NOE)
     else:
-        exit
+        exit()
 
 # Auswahl des Bundeslandes
 def Auswahl_Bundeslandes():
@@ -241,6 +240,7 @@ BUNDESLAND = {
     "Burgenland": "Bgld",
     "Oberösterreich": "OOE",
     "Niederösterreich": "NOE",
+    'Exit': 'EX',
 }
 
 # Verbindungskontrolle
@@ -285,3 +285,5 @@ if __name__ == "__main__":
             OOE_Start()
         elif ausgewaehltes_Bundesland == 'Bgld':
             Bgld_Start()
+        elif ausgewaehltes_Bundesland == 'EX':
+            exit()
