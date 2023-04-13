@@ -3,6 +3,7 @@
 # subprocess.check_output("pip install -r requirements.txt")
 
 # DLC
+import ctypes
 import time
 import os
 import requests
@@ -93,9 +94,9 @@ def URL_Erstellen_Feuerwehr_im_Einsatz(Ausgewaelt_Bezirk_NOE, callback):
 
 # Start NÖ
 def Start_NÖ(Ausgewaelt_Bereich_NOE, Ausgewaelt_Bezirk_NOE):
-    if Ausgewaelt_Bereich_NOE == 1:
+    if Ausgewaelt_Bereich_NOE == '1':
         callback = "jQuery18208820398992410197_1677659902952"
-        URL_Erstellen_Feuerwehr_im_Einsatz(Ausgewaelt_Bezirk_NOE, callback)
+        url.text = URL_Erstellen_Feuerwehr_im_Einsatz(Ausgewaelt_Bezirk_NOE, callback)
         Feuerwehr_im_Einsatz_NOE(callback, Ausgewaelt_Bezirk_NOE)
     else:
         URL_Einsatz_Rueckblicke = URL_Erstellen_Einsatz_Rueckblicke(Ausgewaelt_Bezirk_NOE)
@@ -161,6 +162,7 @@ def laufenden_Einsaetze_waehle_Bezirk_NOE():
         input("Wählen Sie den Bezirk aus (1 bis " + str(len(RBEZIRKENOE)) + "): "))
     ausgewaehltes_Bezirk = list(RBEZIRKENOE.items())[auswahl_Bezirk - 1]
     print(f"Du hast {ausgewaehltes_Bezirk[0]} Ausgewält")
+    ctypes.windll.kernel32.SetConsoleTitleW('{ausgewaehltes_Bezirk[0]}')
     return ausgewaehltes_Bezirk[1]
 
 RBEZIRKENOE = {
@@ -215,12 +217,14 @@ def waehle_bereich_NOE():
 # Auswahl NÖ
 def NOE_Auswahl():
     Ausgewaelt_Bereich_NOE = waehle_bereich_NOE()
-    if Ausgewaelt_Bereich_NOE == 1:
+    if Ausgewaelt_Bereich_NOE == '1':
         Ausgewaelt_Bezirk_NOE = laufenden_Einsaetze_waehle_Bezirk_NOE()
         Start_NÖ(Ausgewaelt_Bereich_NOE, Ausgewaelt_Bezirk_NOE)
-    else:
+    if Ausgewaelt_Bereich_NOE == '2':
         Ausgewaelt_Bezirk_NOE = Einsatz_Rueckblicke_waehle_Bezirk_NOE()
         Start_NÖ(Ausgewaelt_Bezirk_NOE, Ausgewaelt_Bereich_NOE)
+    else:
+        exit
 
 # Auswahl des Bundeslandes
 def Auswahl_Bundeslandes():
@@ -263,6 +267,7 @@ def Verbindungskontrolle():
 if __name__ == "__main__":
     os.system('cls')
     os.system('echo off')
+    ctypes.windll.kernel32.SetConsoleTitleW("Einsatzticker V2")
     print('Wilkommen im Einsatzticker')
     print('V2 Von MCBlatt')
     time.sleep(3)
@@ -271,9 +276,9 @@ if __name__ == "__main__":
     os.system('cls')
     while True:
         ausgewaehltes_Bundesland = Auswahl_Bundeslandes()
-        time.sleep(4)
+        time.sleep(2)
         if ausgewaehltes_Bundesland == 'NOE':
-            time.sleep(3)
+            ctypes.windll.kernel32.SetConsoleTitleW("Einsatzticker V2 NÖ")
             os.system('cls')
             NOE_Auswahl()
         elif ausgewaehltes_Bundesland == 'OOE':
