@@ -1,8 +1,4 @@
-# DLC installieren
-# import subprocess
-# subprocess.check_output("pip install -r requirements.txt")
-
-# DLC
+#das der mir nicht auf den sack geht
 import ctypes
 import time
 import os
@@ -10,122 +6,72 @@ import requests
 import json
 import copy
 import colorama
+import keyboard
 from win10toast import ToastNotifier
 from bs4 import BeautifulSoup
 from prettytable import PrettyTable
 from datetime import date
 
-# URL Erstellen für
-def URL_Erstellen_Einsatz_Rueckblicke(Ausgewaelt_Bezirk_NOE):
-    if Ausgewaelt_Bezirk_NOE != 'X':
-        Datum_heute = date.today().strftime("%d.%m.%Y")
-        Sekunden_heute = int(time.strftime("%S"))
-        Minuten_Heute = int(time.strftime('%M'))*60
-        Stunden_Heute = (int(time.strftime('%H'))*60)*60
-        Sekunden_Tag = Sekunden_heute + Minuten_Heute + Stunden_Heute
-        Url = 'https://www.feuerwehr-krems.at/CodePages/Wastl/WastlMain/Land_EinsatzHistorie.asp?bezirk=' + Ausgewaelt_Bezirk_NOE + '&' + str(Datum_heute) + str(Sekunden_Tag)
-        print(Url)
-        return Url
-    else:
-        Url = 'https://www.feuerwehr-krems.at/CodePages/Wastl/WastlMain/Land_EinsatzHistorie.asp'
-        return Url
+#-------------------------------------------------------------------
 
-# URL Erstellen
-def URL_Erstellen_Feuerwehr_im_Einsatz(Ausgewaelt_Bezirk_NOE, callback):
-    url = f"https://infoscreen.florian10.info/OWS/wastlMobile/getEinsatzAktiv.ashx?callback={callback}&id={Ausgewaelt_Bezirk_NOE}"
-    return url
+import subprocess
+import sys
+import time
+# Module Testen
+def install(module):
+    try:
+        subprocess.run([sys.executable, "-m", "pip", "install", module], shell=False, check=True)
+    except subprocess.CalledProcessError:
+        error_Nachricht = f"Das Modul {module} konnte nicht installiert werden."
+        print(error_Nachricht)
+        sys.exit(error_Nachricht)
+        
+def Test_modul():
+    Benoetigte_module = ["ctypes", "time", "os", "requests", "json", "copy", "colorama", "win10toast", "bs4", "prettytable", "datetime", "keyboard" ]
 
-# Der Ticker
-def Feuerwehr_im_Einsatz_NOE(Ausgewaelt_Bezirk_NOE, callback):
-    os.system('cls')
-    old_events = []
-    completed_events = []
-    toast = ToastNotifier()
-    while True:
-        data = requests.get(
-            URL_Erstellen_Feuerwehr_im_Einsatz(Ausgewaelt_Bezirk_NOE, callback)).text
-        data = data[len(callback)+1:-1]
-        data = json.loads(data)
-        data = data["Einsatz"]
-        new_events = []
-        translationDict = {"B": colorama.Fore.RED, "T": colorama.Fore.BLUE,
-                           "S": colorama.Fore.GREEN, "D": colorama.Fore.WHITE}
-        if len(old_events) != 0:
-            completed_events = completed_events + \
-                [old_event for old_event in old_events if old_event["i"]
-                    not in [new_event["i"] for new_event in data]]
-            new_events = [new_event for new_event in data if new_event["i"] not in [
-                old_event["i"] for old_event in old_events]]
-            print("Aktuelle Einsaetze:\n")
-            for event in old_events:
-                color = translationDict.get(event['a'][0])
-                print(
-                    f"{color + event['a']+colorama.Fore.WHITE:<7} {event['m']:<70}{event['o']:<35}{event['t']:<10}{event['d']:<10}")
-            if len(new_events) != 0:
-                print("Neue Einsaetze:\n")
-                for event in new_events:
-                    color = translationDict.get(event['a'][0])
-                    print(
-                        f"{color + event['a']+colorama.Fore.WHITE:<7} {event['m']:<70}{event['o']:<35}{event['t']:<10}{event['d']:<10}")
-                    toast.show_toast(
-                        "Neuer Einsatz",
-                        f"{event['a']:<4}{event['m']:<70}{event['o']:<35}{event['t']:<10}{event['d']:<10}",
-                        duration=10,
-                        threaded=True,
-                    )
-            print()
-            if len(completed_events) != 0:
-                print("Fertige Einsaetze:\n")
-                for event in completed_events:
-                    color = translationDict.get(event['a'][0])
-                    print(
-                        f"{color + event['a']+colorama.Fore.WHITE:<7} {event['m']:<70}{event['o']:<35}{event['t']:<10}{event['d']:<10}")
-                print()
-        else:
-            print("Aktuelle Einsaetze:\n")
-            for event in data:
-                color = translationDict.get(event['a'][0])
-                print(
-                    f"{color + event['a']+colorama.Fore.WHITE:<7} {event['m']:<70}{event['o']:<35}{event['t']:<10}{event['d']:<10}")
-        old_events = copy.copy(data) + new_events
-        time.sleep(30)
-        os.system('cls')
+    for module in Benoetigte_module:
+        try:
+            __import__(module)
+        except ImportError:
+            print(f"Das Modul {module} ist nicht installiert. Es wird nun installiert.")
+            install(module)
+            print(f"Das Modul {module} wurde erfolgreich installiert.")
+            time.sleep(1)
+            
+    print('Alle Module wurde überprüft')
 
-# Start NÖ
-def Start_NÖ(Ausgewaelt_Bereich_NOE, Ausgewaelt_Bezirk_NOE):
-    if Ausgewaelt_Bereich_NOE == '1':
-        callback = "jQuery18208820398992410197_1677659902952"
-        Feuerwehr_im_Einsatz_NOE(Ausgewaelt_Bezirk_NOE,callback)
-    else:
-        URL_Einsatz_Rueckblicke = URL_Erstellen_Einsatz_Rueckblicke(Ausgewaelt_Bezirk_NOE)
-        translationDict = {"B": colorama.Fore.RED, "T": colorama.Fore.BLUE,
-                           "S": colorama.Fore.GREEN, "D": colorama.Fore.WHITE}
-        response = requests.get(URL_Einsatz_Rueckblicke)
-        soup = BeautifulSoup(response.text, "html.parser")
-        table = soup.find("table")
-        eine_Tabelle = PrettyTable()
-        eine_Tabelle.field_names = ['Melder', 'Ort', 'Stichwort', 'Zeit']
-        rows = table.find_all("tr")
-        for row in rows:
-            cells = row.find_all("td")
-            if cells:
-                stichword = cells[3].text
-                color = translationDict.get(stichword[0])
-                eine_Tabelle.add_row([cells[1].text, cells[2].text, str(
-                    color) + stichword + colorama.Fore.RESET, cells[4].text])
-        print(eine_Tabelle)
+# Internet test
+def Test_internet():
+    URL_noe1 = 'https://www.frig.at/fire'
+    URL_noe2 = 'https://infoscreen.florian10.info/ows/wastlmobileweb/'
 
-# Bezirk wählen laufenden_Einsätze
-def Einsatz_Rueckblicke_waehle_Bezirk_NOE():
-    for i, (k, v) in enumerate(RBEZIRKENOER.items()):
+    connections = [(URL_noe1, "Verbindung NÖ1"), (URL_noe2, "Verbindung NÖ2")]
+
+    for conn in connections:
+        try:
+            response = requests.get(conn[0], timeout=5)
+            response.raise_for_status()
+            print(f"{conn[1]} OK")
+        except requests.exceptions.RequestException as e:
+            print(f"{conn[1]} FEHLER: {e}")
+            error_Nachricht = f"Verbindung zu {conn[1]} konnte nicht hergestellt werden."
+            print(error_Nachricht)
+            sys.exit(error_Nachricht)
+    print("Alle Verbindungen sind ok.")
+    time.sleep(3)
+
+# Bezirk wählen
+def waehle_Bezirk_NOE():
+    for i, (k, v) in enumerate(BEZIRKEOE.items()):
         print(f"{i + 1}. {k}")
     auswahl_Bezirk = int(
-        input("Wählen Sie den Bezirk aus (1 bis " + str(len(RBEZIRKENOER)) + "): "))
-    ausgewaehltes_Bezirk = list(RBEZIRKENOER.items())[auswahl_Bezirk - 1]
+        input("Wählen Sie den Bezirk aus (1 bis " + str(len(BEZIRKEOE)) + "): "))
+    ausgewaehltes_Bezirk = list(BEZIRKEOE.items())[auswahl_Bezirk - 1]
     print(f"Du hast {ausgewaehltes_Bezirk[0]} Ausgewält")
+    ctypes.windll.kernel32.SetConsoleTitleW("Einsatzticker V2 NÖ  "'{ausgewaehltes_Bezirk[0]}')
     return ausgewaehltes_Bezirk[1]
 
-RBEZIRKENOER = {
+BEZIRKEOE = {
     "Amstetten": "01",
     "Baden": "02",
     "Bruck/Leitha": "03",
@@ -152,78 +98,35 @@ RBEZIRKENOER = {
     'Alle': "X"
 }
 
-# Bezirk wählen laufenden_Einsätze
-def laufenden_Einsaetze_waehle_Bezirk_NOE():
-    for i, (k, v) in enumerate(RBEZIRKENOE.items()):
-        print(f"{i + 1}. {k}")
-    auswahl_Bezirk = int(
-        input("Wählen Sie den Bezirk aus (1 bis " + str(len(RBEZIRKENOE)) + "): "))
-    ausgewaehltes_Bezirk = list(RBEZIRKENOE.items())[auswahl_Bezirk - 1]
-    print(f"Du hast {ausgewaehltes_Bezirk[0]} Ausgewält")
-    ctypes.windll.kernel32.SetConsoleTitleW('{ausgewaehltes_Bezirk[0]}')
-    return ausgewaehltes_Bezirk[1]
-
-RBEZIRKENOE = {
-    "Amstetten": "bezirk_01",
-    "Baden": "bezirk_02",
-    "Bruck/Leitha": "bezirk_03",
-    "Gänserndorf": "bezirk_04",
-    "Gmünd": "bezirk_05",
-    "Klosterneuburg": "bezirk_061",
-    "Purkersdorf": "bezirk_062",
-    "Schwechat": "bezirk_063",
-    "Hollabrunn": "bezirk_07",
-    "Horn": "bezirk_08",
-    "Stockerau": "bezirk_09",
-    "Krems/Donau": "bezirk_10",
-    "Lilienfeld": "bezirk_11",
-    "Melk": "bezirk_12",
-    "Mistelbach": "bezirk_13",
-    "Mödling": "bezirk_14",
-    "Neunkirchen": "bezirk_15",
-    "St. Pölten": "bezirk_17",
-    "Scheibbs": "bezirk_18",
-    "Tulln": "bezirk_19",
-    "Waidhofen/T.": "bezirk_20",
-    "Wr. Neustadt": "bezirk_21",
-    "Zwettl": "bezirk_22",
-    'Alle': "bezirk_LWZ"
-}
-
 # Bereich wählen NÖ
 def waehle_bereich_NOE():
     while True:
         print("Gib 1 ein, um die laufenden Einsätze zu sehen")
         print("Gib 2 ein, um die Einsatz-Rückblicke zu sehen")
-        print("Gib 3 ein, um das Programm zu Beenden")
         Ausgewaelt_Bereich_NOE = input()
         if Ausgewaelt_Bereich_NOE == "1":
             print('Du Hast laufenden Einsätze ausgewält')
-            time.sleep(2)
+            time.sleep(1)
             return Ausgewaelt_Bereich_NOE
         elif Ausgewaelt_Bereich_NOE == "2":
             print('Du Hast Einsatz-Rückblicke ausgewält')
-            time.sleep(2)
+            time.sleep(1)
             return Ausgewaelt_Bereich_NOE
-        elif Ausgewaelt_Bereich_NOE == "3":
-            print('Tschüss')
-            time.sleep(2)
-            exit()
         else:
-            print("Bitte wähle nur 1-3 aus")
+            print("Bitte wähle nur 1-2 aus")
             waehle_bereich_NOE
 
 # Auswahl NÖ
 def NOE_Auswahl():
-    Ausgewaelt_Bereich_NOE = waehle_bereich_NOE()
-    if Ausgewaelt_Bereich_NOE == '1':
-        Ausgewaelt_Bezirk_NOE = laufenden_Einsaetze_waehle_Bezirk_NOE()
-        Start_NÖ(Ausgewaelt_Bereich_NOE, Ausgewaelt_Bezirk_NOE)
-    if Ausgewaelt_Bereich_NOE == '2':
-        Ausgewaelt_Bezirk_NOE = Einsatz_Rueckblicke_waehle_Bezirk_NOE()
-        Start_NÖ(Ausgewaelt_Bereich_NOE,Ausgewaelt_Bezirk_NOE)
+    Bereich_NOE = waehle_bereich_NOE()
+    Bezirk_NOE = waehle_Bezirk_NOE()
+    if Bereich_NOE ('2'):
+        if Bezirk_NOE != 'X':
+            Bezirk_NOE = str('bezirk_' (Bezirk_NOE))
+        else:
+            Bezirk_NOE = 'bezirk_LWZ'
     else:
-        exit()
+        return(Bereich_NOE, Bezirk_NOE)
 
 # Auswahl des Bundeslandes
 def Auswahl_Bundeslandes():
@@ -237,53 +140,60 @@ def Auswahl_Bundeslandes():
 
 
 BUNDESLAND = {
-    "Burgenland": "Bgld",
-    "Oberösterreich": "OOE",
     "Niederösterreich": "NOE",
     'Exit': 'EX',
 }
 
-# Verbindungskontrolle
-def Verbindungskontrolle():
-    URL_Burgenland = 'https://www.lsz-b.at/leistungen/feuerwehr-einsatzkarte/'
-    URL_ooe = 'http://intranet.ooelfv.at'
-    URL_noe1 = 'https://www.frig.at/fire'
-    URL_noe2 = 'https://infoscreen.florian10.info/ows/wastlmobileweb/'
+def Start(Bereich_NOE, Bezirk_NOE):
+    if Bereich_NOE == '1':
+        callback = "jQuery18208820398992410197_1677659902952"
+        Feuerwehr_im_Einsatz_NOE(Bezirk_NOE,callback)
+    else:
+        URL_Einsatz_Rueckblicke = URL_Erstellen_Einsatz_Rueckblicke(Bezirk_NOE)
+        translationDict = {"B": colorama.Fore.RED, "T": colorama.Fore.BLUE,
+                           "S": colorama.Fore.GREEN, "D": colorama.Fore.WHITE}
+        response = requests.get(URL_Einsatz_Rueckblicke)
+        soup = BeautifulSoup(response.text, "html.parser")
+        table = soup.find("table")
+        eine_Tabelle = PrettyTable()
+        eine_Tabelle.field_names = ['Melder', 'Ort', 'Stichwort', 'Zeit']
+        rows = table.find_all("tr")
+        for row in rows:
+            cells = row.find_all("td")
+            if cells:
+                stichword = cells[3].text
+                color = translationDict.get(stichword[0])
+                eine_Tabelle.add_row([cells[1].text, cells[2].text, str(
+                    color) + stichword + colorama.Fore.RESET, cells[4].text])
+        print(eine_Tabelle)
 
-    connections = [(URL_Burgenland, "Verbindung Bgld"), (URL_ooe, "Verbindung OÖ"),
-                   (URL_noe1, "Verbindung NÖ1"), (URL_noe2, "Verbindung NÖ2")]
-
-    for conn in connections:
-        try:
-            response = requests.get(conn[0], timeout=5)
-            response.raise_for_status()
-            print(f"{conn[1]} OK")
-        except requests.exceptions.RequestException as e:
-            print(f"{conn[1]} FEHLER: {e}")
-            exit(1)
-    print("Alle Verbindungen sind ok.")
-    time.sleep(3)
+def Testmodus():
+    os.system('cls')
+    print("Testmodus aktiviert")
+    ctypes.windll.kernel32.SetConsoleTitleW("Test modus Einsatzticker V2")
+    Grund = "Noch nicht gemacht"
+    exit(Grund)
+        
 # Start vorberreitung
 if __name__ == "__main__":
-    os.system('cls')
-    os.system('echo off')
-    ctypes.windll.kernel32.SetConsoleTitleW("Einsatzticker V2")
-    print('Wilkommen im Einsatzticker')
-    print('V2 Von MCBlatt')
-    time.sleep(3)
-    Verbindungskontrolle()
-    time.sleep(5)
-    os.system('cls')
-    while True:
-        ausgewaehltes_Bundesland = Auswahl_Bundeslandes()
-        time.sleep(2)
-        if ausgewaehltes_Bundesland == 'NOE':
-            ctypes.windll.kernel32.SetConsoleTitleW("Einsatzticker V2 NÖ")
-            os.system('cls')
-            NOE_Auswahl()
-        elif ausgewaehltes_Bundesland == 'OOE':
-            OOE_Start()
-        elif ausgewaehltes_Bundesland == 'Bgld':
-            Bgld_Start()
-        elif ausgewaehltes_Bundesland == 'EX':
-            exit()
+    while not keyboard.is_pressed('alt'):
+        Test_modul()
+        Test_internet()
+        # Test Fertig
+        subprocess.run("cls", shell=True)
+        subprocess.run("echo off", shell=True)
+        ctypes.windll.kernel32.SetConsoleTitleW("Einsatzticker V2")
+        print('Wilkommen im Einsatzticker')
+        print('V2 Von MCBlatt')
+        if keyboard.is_pressed('alt'):
+                Testmodus()
+        while True:
+            ausgewaehltes_Bundesland = Auswahl_Bundeslandes()
+            time.sleep(2)
+            if ausgewaehltes_Bundesland == 'NOE':
+                ctypes.windll.kernel32.SetConsoleTitleW("Einsatzticker V2 NÖ")
+                os.system('cls')
+                NOE_Auswahl()
+                Start(Bereich_NOE, Bezirk_NOE)
+            elif ausgewaehltes_Bundesland == 'EX':
+                exit()
