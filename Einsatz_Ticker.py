@@ -1,23 +1,16 @@
 #das der mir nicht auf den sack geht
 import ctypes
 import time
-import os
 import requests
 import json
 import copy
 import colorama
-import keyboard
-from win10toast import ToastNotifier
-from bs4 import BeautifulSoup
-from prettytable import PrettyTable
-from datetime import date
-
 #-------------------------------------------------------------------
-
+# Importieren der benötigten Module
 import subprocess
 import sys
 import time
-# Module Testen
+# Testen und Installieren der Module
 def install(module):
     try:
         subprocess.run([sys.executable, "-m", "pip", "install", module], shell=False, check=True)
@@ -27,8 +20,7 @@ def install(module):
         sys.exit(error_Nachricht)
         
 def Test_modul():
-    Benoetigte_module = ["ctypes", "time", "os", "requests", "json", "copy", "colorama", "win10toast", "bs4", "prettytable", "datetime", "keyboard" ]
-
+    Benoetigte_module = ["ctypes", "time", "requests", "json", "copy", "colorama", "win10toast", "bs4", "prettytable", "datetime",]
     for module in Benoetigte_module:
         try:
             __import__(module)
@@ -37,30 +29,27 @@ def Test_modul():
             install(module)
             print(f"Das Modul {module} wurde erfolgreich installiert.")
             time.sleep(1)
-            
     print('Alle Module wurde überprüft')
 
-# Internet test
+# Internetverbindung testen
 def Test_internet():
     URL_noe1 = 'https://www.frig.at/fire'
     URL_noe2 = 'https://infoscreen.florian10.info/ows/wastlmobileweb/'
 
     connections = [(URL_noe1, "Verbindung NÖ1"), (URL_noe2, "Verbindung NÖ2")]
-
     for conn in connections:
         try:
             response = requests.get(conn[0], timeout=5)
             response.raise_for_status()
             print(f"{conn[1]} OK")
         except requests.exceptions.RequestException as e:
-            print(f"{conn[1]} FEHLER: {e}")
+            # print(f"{conn[1]} FEHLER: {e}")
             error_Nachricht = f"Verbindung zu {conn[1]} konnte nicht hergestellt werden."
-            print(error_Nachricht)
             sys.exit(error_Nachricht)
     print("Alle Verbindungen sind ok.")
     time.sleep(3)
 
-# Bezirk wählen
+# Bezirk in Niederösterreich auswählen
 def waehle_Bezirk_NOE():
     for i, (k, v) in enumerate(BEZIRKEOE.items()):
         print(f"{i + 1}. {k}")
@@ -98,7 +87,7 @@ BEZIRKEOE = {
     'Alle': "X"
 }
 
-# Bereich wählen NÖ
+# Bereich in Niederösterreich auswählen
 def waehle_bereich_NOE():
     while True:
         print("Gib 1 ein, um die laufenden Einsätze zu sehen")
@@ -116,7 +105,7 @@ def waehle_bereich_NOE():
             print("Bitte wähle nur 1-2 aus")
             waehle_bereich_NOE
 
-# Auswahl NÖ
+# Auswahl für Niederösterreich
 def NOE_Auswahl():
     Bereich_NOE = waehle_bereich_NOE()
     Bezirk_NOE = waehle_Bezirk_NOE()
@@ -132,18 +121,98 @@ def NOE_Auswahl():
 def Auswahl_Bundeslandes():
     for i, (k, v) in enumerate(BUNDESLAND.items()):
         print(f"{i + 1}. {k}")
-    auswahl_Bundesland = int(
-        input("Wählen Sie den Bezirk aus (1 bis " + str(len(BUNDESLAND)) + "): "))
+    while True:
+        try:
+            auswahl_Bundesland = int(input("Wählen Sie den Bezirk aus (1 bis " + str(len(BUNDESLAND)) + "): "))
+            if 1 <= auswahl_Bundesland <= len(BUNDESLAND):
+                break
+            else:
+                print("Ungültige Eingabe. Bitte geben Sie eine Zahl zwischen 1 und " + str(len(BUNDESLAND)) + " ein.")
+        except ValueError:
+            print("Ungültige Eingabe. Bitte geben Sie eine Zahl ein.")
     ausgewaehltes_item_Bund = list(BUNDESLAND.items())[auswahl_Bundesland - 1]
     print(f"Du hast {ausgewaehltes_item_Bund[0]} Ausgewält")
     return ausgewaehltes_item_Bund[1]
-
-
+# Bundesländer-Liste
 BUNDESLAND = {
     "Niederösterreich": "NOE",
     'Exit': 'EX',
 }
 
+# URL für Einsatz-Rückblicke erstellen
+def URL_Erstellen_Einsatz_Rueckblicke(Ausgewaelt_Bezirk_NOE):
+    if Ausgewaelt_Bezirk_NOE != 'X':
+        Datum_heute = date.today().strftime("%d.%m.%Y")
+        Sekunden_heute = int(time.strftime("%S"))
+        Minuten_Heute = int(time.strftime('%M'))*60
+        Stunden_Heute = (int(time.strftime('%H'))*60)*60
+        Sekunden_Tag = Sekunden_heute + Minuten_Heute + Stunden_Heute
+        Url = 'https://www.feuerwehr-krems.at/CodePages/Wastl/WastlMain/Land_EinsatzHistorie.asp?bezirk=' + Ausgewaelt_Bezirk_NOE + '&' + str(Datum_heute) + str(Sekunden_Tag)
+        print(Url)
+        return Url
+    else:
+        return 'https://www.feuerwehr-krems.at/CodePages/Wastl/WastlMain/Land_EinsatzHistorie.asp'
+# URL für Feuerwehr im Einsatz erstellen
+def URL_Erstellen_Feuerwehr_im_Einsatz(Ausgewaelt_Bezirk_NOE, callback):
+    return f"https://infoscreen.florian10.info/OWS/wastlMobile/getEinsatzAktiv.ashx?callback={callback}&id={Ausgewaelt_Bezirk_NOE}"
+
+# Der Ticker
+def Feuerwehr_im_Einsatz_NOE(Ausgewaelt_Bezirk_NOE, callback):
+    subprocess.run(["cls"], shell=True)
+    alte_Einsaetze = []
+    abgeschlossene_Einsaetze = []
+    toast = ToastNotifier()
+    while True:
+        data = requests.get(
+            URL_Erstellen_Feuerwehr_im_Einsatz(Ausgewaelt_Bezirk_NOE, callback)).text
+        data = data[len(callback)+1:-1]
+        data = json.loads(data)
+        data = data["Einsatz"]
+        neue_Einsaetze = []
+        translationDict = {"B": colorama.Fore.RED, "T": colorama.Fore.BLUE,
+                           "S": colorama.Fore.GREEN, "D": colorama.Fore.WHITE}
+        if len(alte_Einsaetze) != 0:
+            abgeschlossene_Einsaetze = abgeschlossene_Einsaetze + \
+                [old_event for old_event in alte_Einsaetze if old_event["i"]
+                    not in [new_event["i"] for new_event in data]]
+            neue_Einsaetze = [new_event for new_event in data if new_event["i"] not in [
+                old_event["i"] for old_event in alte_Einsaetze]]
+            print("Aktuelle Einsaetze:\n")
+            for event in alte_Einsaetze:
+                color = translationDict.get(event['a'][0])
+                print(
+                    f"{color + event['a']+colorama.Fore.WHITE:<7} {event['m']:<70}{event['o']:<35}{event['t']:<10}{event['d']:<10}")
+            if len(neue_Einsaetze) != 0:
+                print("Neue Einsaetze:\n")
+                for event in neue_Einsaetze:
+                    color = translationDict.get(event['a'][0])
+                    print(
+                        f"{color + event['a']+colorama.Fore.WHITE:<7} {event['m']:<70}{event['o']:<35}{event['t']:<10}{event['d']:<10}")
+                    toast.show_toast(
+                        "Neuer Einsatz",
+                        f"{event['a']:<4}{event['m']:<70}{event['o']:<35}{event['t']:<10}{event['d']:<10}",
+                        duration=10,
+                        threaded=True,
+                    )
+            print()
+            if len(abgeschlossene_Einsaetze) != 0:
+                print("Fertige Einsaetze:\n")
+                for event in abgeschlossene_Einsaetze:
+                    color = translationDict.get(event['a'][0])
+                    print(
+                        f"{color + event['a']+colorama.Fore.WHITE:<7} {event['m']:<70}{event['o']:<35}{event['t']:<10}{event['d']:<10}")
+                print()
+        else:
+            print("Aktuelle Einsaetze:\n")
+            for event in data:
+                color = translationDict.get(event['a'][0])
+                print(
+                    f"{color + event['a']+colorama.Fore.WHITE:<7} {event['m']:<70}{event['o']:<35}{event['t']:<10}{event['d']:<10}")
+        alte_Einsaetze = copy.copy(data) + neue_Einsaetze
+        time.sleep(30)
+        subprocess.run(["cls"], shell=True)
+
+ # Starten der Anwendung
 def Start(Bereich_NOE, Bezirk_NOE):
     if Bereich_NOE == '1':
         callback = "jQuery18208820398992410197_1677659902952"
@@ -152,7 +221,7 @@ def Start(Bereich_NOE, Bezirk_NOE):
         URL_Einsatz_Rueckblicke = URL_Erstellen_Einsatz_Rueckblicke(Bezirk_NOE)
         translationDict = {"B": colorama.Fore.RED, "T": colorama.Fore.BLUE,
                            "S": colorama.Fore.GREEN, "D": colorama.Fore.WHITE}
-        response = requests.get(URL_Einsatz_Rueckblicke)
+        response = requests.get(URL_Einsatz_Rueckblicke, timeout=5, verify=True)
         soup = BeautifulSoup(response.text, "html.parser")
         table = soup.find("table")
         eine_Tabelle = PrettyTable()
@@ -166,34 +235,30 @@ def Start(Bereich_NOE, Bezirk_NOE):
                 eine_Tabelle.add_row([cells[1].text, cells[2].text, str(
                     color) + stichword + colorama.Fore.RESET, cells[4].text])
         print(eine_Tabelle)
-
-def Testmodus():
-    os.system('cls')
-    print("Testmodus aktiviert")
-    ctypes.windll.kernel32.SetConsoleTitleW("Test modus Einsatzticker V2")
-    Grund = "Noch nicht gemacht"
-    exit(Grund)
-        
+     
 # Start vorberreitung
 if __name__ == "__main__":
-    while not keyboard.is_pressed('alt'):
-        Test_modul()
-        Test_internet()
-        # Test Fertig
-        subprocess.run("cls", shell=True)
-        subprocess.run("echo off", shell=True)
-        ctypes.windll.kernel32.SetConsoleTitleW("Einsatzticker V2")
-        print('Wilkommen im Einsatzticker')
-        print('V2 Von MCBlatt')
-        if keyboard.is_pressed('alt'):
-                Testmodus()
-        while True:
-            ausgewaehltes_Bundesland = Auswahl_Bundeslandes()
-            time.sleep(2)
-            if ausgewaehltes_Bundesland == 'NOE':
-                ctypes.windll.kernel32.SetConsoleTitleW("Einsatzticker V2 NÖ")
-                os.system('cls')
-                NOE_Auswahl()
-                Start(Bereich_NOE, Bezirk_NOE)
-            elif ausgewaehltes_Bundesland == 'EX':
-                exit()
+    subprocess.run(["cls"], shell=True)
+    Test_modul()
+    from win10toast import ToastNotifier
+    from bs4 import BeautifulSoup
+    from prettytable import PrettyTable
+    from datetime import date
+    Test_internet()
+    # Test Fertig
+    subprocess.run(["cls"], shell=True)
+    subprocess.run(["echo", "off"], shell=True)
+    ctypes.windll.kernel32.SetConsoleTitleW("Einsatzticker V2")
+    print('Wilkommen im Einsatzticker')
+    print('V2 Von MCBlatt')
+    while True:
+        ausgewaehltes_Bundesland = Auswahl_Bundeslandes()
+        time.sleep(2)
+        if ausgewaehltes_Bundesland == 'NOE':
+            ctypes.windll.kernel32.SetConsoleTitleW("Einsatzticker V2 NÖ")
+            subprocess.run(["cls"], shell=True)
+            NOE_Auswahl()
+            Bereich_NOE, Bezirk_NOE = NOE_Auswahl()
+            Start(Bereich_NOE, Bezirk_NOE)
+        elif ausgewaehltes_Bundesland == 'EX':
+            exit()
