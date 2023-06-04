@@ -1,7 +1,7 @@
 Deutsch:
 
-# Einsatz_Ticker
- Ticker Für Einsatze in NÖ. OÖ. und Bgld. in Ö 
+Einsatz_Ticker
+Ticker Für Einsatze in NÖ. OÖ. und Bgld. in Ö 
 
 Benötigt:
 Pyaton: 3.11.3
