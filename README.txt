@@ -1,7 +1,7 @@
 Deutsch:
 
 Einsatz_Ticker
-Ticker Für Einsatze in NÖ. OÖ. und Bgld. in Ö 
+Ticker Für Einsatze in NÖ. in Ö 
 
 Benötigt:
 Pyaton: 3.11.3
@@ -17,7 +17,7 @@ dann wird die "Start" Funktion aufgerufen, um die entsprechenden Informationen a
 English:
 
 Operation_Ticker
-Ticker for operations in Lower Austria (NÖ), Upper Austria (OÖ), and Burgenland (Bgld) in Austria
+Ticker for operations in Lower Austria (NÖ), in Austria
 
 Requirements:
 Python: 3.11.3

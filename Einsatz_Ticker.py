@@ -9,7 +9,6 @@ import colorama
 # Importieren der benötigten Module
 import subprocess
 import sys
-import time
 # Testen und Installieren der Module
 def install(module):
     try:
@@ -20,7 +19,7 @@ def install(module):
         sys.exit(error_Nachricht)
         
 def Test_modul():
-    Benoetigte_module = ["ctypes", "time", "requests", "json", "copy", "colorama", "win10toast", "bs4", "prettytable", "datetime",]
+    Benoetigte_module = ["ctypes", "time", "requests", "json", "copy", "colorama", "win10toast", "bs4", "prettytable", "datetime","subprocess", "sys", "time"]
     for module in Benoetigte_module:
         try:
             __import__(module)
@@ -53,8 +52,15 @@ def Test_internet():
 def waehle_Bezirk_NOE():
     for i, (k, v) in enumerate(BEZIRKEOE.items()):
         print(f"{i + 1}. {k}")
-    auswahl_Bezirk = int(
-        input("Wählen Sie den Bezirk aus (1 bis " + str(len(BEZIRKEOE)) + "): "))
+    while True:
+        try:
+            auswahl_Bezirk = int(input("Wählen Sie den Bezirk aus (1 bis " + str(len(BEZIRKEOE)) + "): "))
+            if 1 <= auswahl_Bezirk <= len(BEZIRKEOE):
+                break
+            else:
+                print("Ungültige Eingabe. Bitte geben Sie eine Zahl zwischen 1 und " + str(len(BEZIRKEOE)) + " ein.")
+        except ValueError:
+            print("Ungültige Eingabe. Bitte geben Sie eine Zahl ein.")
     ausgewaehltes_Bezirk = list(BEZIRKEOE.items())[auswahl_Bezirk - 1]
     print(f"Du hast {ausgewaehltes_Bezirk[0]} Ausgewält")
     ctypes.windll.kernel32.SetConsoleTitleW("Einsatzticker V2 NÖ  "'{ausgewaehltes_Bezirk[0]}')
@@ -103,19 +109,18 @@ def waehle_bereich_NOE():
             return Ausgewaelt_Bereich_NOE
         else:
             print("Bitte wähle nur 1-2 aus")
-            waehle_bereich_NOE
+            waehle_bereich_NOE()
 
 # Auswahl für Niederösterreich
 def NOE_Auswahl():
     Bereich_NOE = waehle_bereich_NOE()
     Bezirk_NOE = waehle_Bezirk_NOE()
-    if Bereich_NOE ('2'):
+    if Bereich_NOE == '1':
         if Bezirk_NOE != 'X':
-            Bezirk_NOE = str('bezirk_' (Bezirk_NOE))
+            Bezirk_NOE = ('bezirk_' + Bezirk_NOE)
         else:
             Bezirk_NOE = 'bezirk_LWZ'
-    else:
-        return(Bereich_NOE, Bezirk_NOE)
+    return(Bereich_NOE, Bezirk_NOE)
 
 # Auswahl des Bundeslandes
 def Auswahl_Bundeslandes():
@@ -148,23 +153,22 @@ def URL_Erstellen_Einsatz_Rueckblicke(Ausgewaelt_Bezirk_NOE):
         Stunden_Heute = (int(time.strftime('%H'))*60)*60
         Sekunden_Tag = Sekunden_heute + Minuten_Heute + Stunden_Heute
         Url = 'https://www.feuerwehr-krems.at/CodePages/Wastl/WastlMain/Land_EinsatzHistorie.asp?bezirk=' + Ausgewaelt_Bezirk_NOE + '&' + str(Datum_heute) + str(Sekunden_Tag)
-        print(Url)
         return Url
     else:
         return 'https://www.feuerwehr-krems.at/CodePages/Wastl/WastlMain/Land_EinsatzHistorie.asp'
 # URL für Feuerwehr im Einsatz erstellen
-def URL_Erstellen_Feuerwehr_im_Einsatz(Ausgewaelt_Bezirk_NOE, callback):
-    return f"https://infoscreen.florian10.info/OWS/wastlMobile/getEinsatzAktiv.ashx?callback={callback}&id={Ausgewaelt_Bezirk_NOE}"
+def URL_Erstellen_Feuerwehr_im_Einsatz(Bezirk_NOE, callback):
+    return f"https://infoscreen.florian10.info/OWS/wastlMobile/getEinsatzAktiv.ashx?callback={callback}&id={Bezirk_NOE}"
 
 # Der Ticker
-def Feuerwehr_im_Einsatz_NOE(Ausgewaelt_Bezirk_NOE, callback):
+def Feuerwehr_im_Einsatz_NOE(Bezirk_NOE, callback):
     subprocess.run(["cls"], shell=True)
     alte_Einsaetze = []
     abgeschlossene_Einsaetze = []
     toast = ToastNotifier()
     while True:
         data = requests.get(
-            URL_Erstellen_Feuerwehr_im_Einsatz(Ausgewaelt_Bezirk_NOE, callback)).text
+            URL_Erstellen_Feuerwehr_im_Einsatz(Bezirk_NOE, callback)).text
         data = data[len(callback)+1:-1]
         data = json.loads(data)
         data = data["Einsatz"]
@@ -183,6 +187,7 @@ def Feuerwehr_im_Einsatz_NOE(Ausgewaelt_Bezirk_NOE, callback):
                 print(
                     f"{color + event['a']+colorama.Fore.WHITE:<7} {event['m']:<70}{event['o']:<35}{event['t']:<10}{event['d']:<10}")
             if len(neue_Einsaetze) != 0:
+                print("\n")
                 print("Neue Einsaetze:\n")
                 for event in neue_Einsaetze:
                     color = translationDict.get(event['a'][0])
@@ -196,6 +201,7 @@ def Feuerwehr_im_Einsatz_NOE(Ausgewaelt_Bezirk_NOE, callback):
                     )
             print()
             if len(abgeschlossene_Einsaetze) != 0:
+                print("\n")
                 print("Fertige Einsaetze:\n")
                 for event in abgeschlossene_Einsaetze:
                     color = translationDict.get(event['a'][0])
@@ -215,7 +221,7 @@ def Feuerwehr_im_Einsatz_NOE(Ausgewaelt_Bezirk_NOE, callback):
  # Starten der Anwendung
 def Start(Bereich_NOE, Bezirk_NOE):
     if Bereich_NOE == '1':
-        callback = "jQuery18208820398992410197_1677659902952"
+        callback = "jQuery18207186704915867632_1686042466773"
         Feuerwehr_im_Einsatz_NOE(Bezirk_NOE,callback)
     else:
         URL_Einsatz_Rueckblicke = URL_Erstellen_Einsatz_Rueckblicke(Bezirk_NOE)
@@ -257,7 +263,6 @@ if __name__ == "__main__":
         if ausgewaehltes_Bundesland == 'NOE':
             ctypes.windll.kernel32.SetConsoleTitleW("Einsatzticker V2 NÖ")
             subprocess.run(["cls"], shell=True)
-            NOE_Auswahl()
             Bereich_NOE, Bezirk_NOE = NOE_Auswahl()
             Start(Bereich_NOE, Bezirk_NOE)
         elif ausgewaehltes_Bundesland == 'EX':
