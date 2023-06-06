@@ -42,7 +42,7 @@ def Test_internet():
             response.raise_for_status()
             print(f"{conn[1]} OK")
         except requests.exceptions.RequestException as e:
-            # print(f"{conn[1]} FEHLER: {e}")
+            print(f"{conn[1]} FEHLER: {e}")
             error_Nachricht = f"Verbindung zu {conn[1]} konnte nicht hergestellt werden."
             sys.exit(error_Nachricht)
     print("Alle Verbindungen sind ok.")
@@ -167,20 +167,20 @@ def Feuerwehr_im_Einsatz_NOE(Bezirk_NOE, callback):
     abgeschlossene_Einsaetze = []
     toast = ToastNotifier()
     while True:
-        data = requests.get(
+        daten = requests.get(
             URL_Erstellen_Feuerwehr_im_Einsatz(Bezirk_NOE, callback)).text
-        data = data[len(callback)+1:-1]
-        data = json.loads(data)
-        data = data["Einsatz"]
+        daten = daten[len(callback)+1:-1]
+        daten = json.loads(daten)
+        daten = daten["Einsatz"]
         neue_Einsaetze = []
         translationDict = {"B": colorama.Fore.RED, "T": colorama.Fore.BLUE,
                            "S": colorama.Fore.GREEN, "D": colorama.Fore.WHITE}
         if len(alte_Einsaetze) != 0:
             abgeschlossene_Einsaetze = abgeschlossene_Einsaetze + \
-                [old_event for old_event in alte_Einsaetze if old_event["i"]
-                    not in [new_event["i"] for new_event in data]]
-            neue_Einsaetze = [new_event for new_event in data if new_event["i"] not in [
-                old_event["i"] for old_event in alte_Einsaetze]]
+                [altes_event for altes_event in alte_Einsaetze if altes_event["i"]
+                    not in [new_event["i"] for new_event in daten]]
+            neue_Einsaetze = [neues_event for neues_event in daten if neues_event["i"] not in [
+                altes_event["i"] for altes_event in alte_Einsaetze]]
             print("Aktuelle Einsaetze:\n")
             for event in alte_Einsaetze:
                 color = translationDict.get(event['a'][0])
@@ -210,11 +210,11 @@ def Feuerwehr_im_Einsatz_NOE(Bezirk_NOE, callback):
                 print()
         else:
             print("Aktuelle Einsaetze:\n")
-            for event in data:
+            for event in daten:
                 color = translationDict.get(event['a'][0])
                 print(
                     f"{color + event['a']+colorama.Fore.WHITE:<7} {event['m']:<70}{event['o']:<35}{event['t']:<10}{event['d']:<10}")
-        alte_Einsaetze = copy.copy(data) + neue_Einsaetze
+        alte_Einsaetze = copy.copy(daten) + neue_Einsaetze
         time.sleep(30)
         subprocess.run(["cls"], shell=True)
 
