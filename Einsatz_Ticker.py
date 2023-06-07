@@ -1,4 +1,3 @@
-#-------------------------------------------------------------------
 # Importieren der benötigten Module
 import subprocess
 import sys
