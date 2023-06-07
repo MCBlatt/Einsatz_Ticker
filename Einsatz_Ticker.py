@@ -5,6 +5,7 @@ import requests
 import json
 import copy
 import colorama
+import msvcrt
 #-------------------------------------------------------------------
 # Importieren der benötigten Module
 import subprocess
@@ -19,7 +20,7 @@ def install(module):
         sys.exit(error_Nachricht)
         
 def Test_modul():
-    Benoetigte_module = ["ctypes", "time", "requests", "json", "copy", "colorama", "win10toast", "bs4", "prettytable", "datetime","subprocess", "sys", "time"]
+    Benoetigte_module = ["ctypes", "time", "requests", "json", "copy", "colorama", "win10toast", "bs4", "prettytable", "datetime","subprocess", "sys", "time" , "msvcrt"]
     for module in Benoetigte_module:
         try:
             __import__(module)
@@ -43,7 +44,14 @@ def Test_internet():
             print(f"{conn[1]} OK")
         except requests.exceptions.RequestException as e:
             print(f"{conn[1]} FEHLER: {e}")
-            error_Nachricht = f"Verbindung zu {conn[1]} konnte nicht hergestellt werden."
+            toast = ToastNotifier()
+            toast.show_toast(
+                        "Fehler",
+                        "Verbindung Zum Server konnte nicht hergestellt werden.",
+                        duration=10,
+                        threaded=True,
+                    )
+            error_Nachricht = colorama.Fore.RED + f"Verbindung zu {conn[1]} konnte nicht hergestellt werden. Prgramm Beendet" + colorama.Fore.WHITE
             sys.exit(error_Nachricht)
     print("Alle Verbindungen sind ok.")
     time.sleep(3)
@@ -167,6 +175,10 @@ def Feuerwehr_im_Einsatz_NOE(Bezirk_NOE, callback):
     abgeschlossene_Einsaetze = []
     toast = ToastNotifier()
     while True:
+        if msvcrt.kbhit():
+            if msvcrt.getwche().lower() == 'q':
+                subprocess.run(["cls"], shell=True)
+                break
         daten = requests.get(
             URL_Erstellen_Feuerwehr_im_Einsatz(Bezirk_NOE, callback)).text
         daten = daten[len(callback)+1:-1]
@@ -215,9 +227,25 @@ def Feuerwehr_im_Einsatz_NOE(Bezirk_NOE, callback):
                 print(
                     f"{color + event['a']+colorama.Fore.WHITE:<7} {event['m']:<70}{event['o']:<35}{event['t']:<10}{event['d']:<10}")
         alte_Einsaetze = copy.copy(daten) + neue_Einsaetze
+        print("-" * 150)
+        print ("Wenn du wieder zurück ins Menü gehen willst, dann drücke Q (kann bis zu 30 Sek Dauern)")
         time.sleep(30)
         subprocess.run(["cls"], shell=True)
-
+        try:
+            daten = requests.get(
+                URL_Erstellen_Feuerwehr_im_Einsatz(Bezirk_NOE, callback), timeout=5).text
+            daten = daten[len(callback)+1:-1]
+            daten = json.loads(daten)
+            daten = daten["Einsatz"]
+        except requests.exceptions.RequestException as e:
+            toast.show_toast(
+                        "Fehler",
+                        "Verbindung Zum Server Verloren.",
+                        duration=10,
+                        threaded=True,
+                    )
+            error_Nachricht = colorama.Fore.RED + "Verbindung Zum Server Verloren. Programm beendet" + colorama.Fore.WHITE
+            sys.exit(error_Nachricht)
  # Starten der Anwendung
 def Start(Bereich_NOE, Bezirk_NOE):
     if Bereich_NOE == '1':
@@ -230,6 +258,7 @@ def Start(Bereich_NOE, Bezirk_NOE):
         response = requests.get(URL_Einsatz_Rueckblicke, timeout=5, verify=True)
         soup = BeautifulSoup(response.text, "html.parser")
         table = soup.find("table")
+
         eine_Tabelle = PrettyTable()
         eine_Tabelle.field_names = ['Melder', 'Ort', 'Stichwort', 'Zeit']
         rows = table.find_all("tr")
@@ -266,4 +295,5 @@ if __name__ == "__main__":
             Bereich_NOE, Bezirk_NOE = NOE_Auswahl()
             Start(Bereich_NOE, Bezirk_NOE)
         elif ausgewaehltes_Bundesland == 'EX':
+            subprocess.run(["cls"], shell=True)
             exit()
