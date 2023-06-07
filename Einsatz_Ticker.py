@@ -1,11 +1,3 @@
-#das der mir nicht auf den sack geht
-import ctypes
-import time
-import requests
-import json
-import copy
-import colorama
-import msvcrt
 #-------------------------------------------------------------------
 # Importieren der benötigten Module
 import subprocess
@@ -20,7 +12,7 @@ def install(module):
         sys.exit(error_Nachricht)
         
 def Test_modul():
-    Benoetigte_module = ["ctypes", "time", "requests", "json", "copy", "colorama", "win10toast", "bs4", "prettytable", "datetime","subprocess", "sys", "time" , "msvcrt"]
+    Benoetigte_module = ["ctypes", "time", "requests", "json", "copy", "colorama", "bs4", "prettytable", "datetime","subprocess", "sys", "time", "msvcrt", "plyer"]
     for module in Benoetigte_module:
         try:
             __import__(module)
@@ -43,14 +35,12 @@ def Test_internet():
             response.raise_for_status()
             print(f"{conn[1]} OK")
         except requests.exceptions.RequestException as e:
-            print(f"{conn[1]} FEHLER: {e}")
-            toast = ToastNotifier()
-            toast.show_toast(
-                        "Fehler",
-                        "Verbindung Zum Server konnte nicht hergestellt werden.",
-                        duration=10,
-                        threaded=True,
-                    )
+            print(f"{conn[1]} Debug: FEHLER: {e}")
+            notification.notify(
+                title="Fehler",
+                message="Verbindung Zum Server konnte nicht hergestellt werden.",
+                timeout=10,
+                )
             error_Nachricht = colorama.Fore.RED + f"Verbindung zu {conn[1]} konnte nicht hergestellt werden. Prgramm Beendet" + colorama.Fore.WHITE
             sys.exit(error_Nachricht)
     print("Alle Verbindungen sind ok.")
@@ -173,7 +163,6 @@ def Feuerwehr_im_Einsatz_NOE(Bezirk_NOE, callback):
     subprocess.run(["cls"], shell=True)
     alte_Einsaetze = []
     abgeschlossene_Einsaetze = []
-    toast = ToastNotifier()
     while True:
         if msvcrt.kbhit():
             if msvcrt.getwche().lower() == 'q':
@@ -205,11 +194,10 @@ def Feuerwehr_im_Einsatz_NOE(Bezirk_NOE, callback):
                     color = translationDict.get(event['a'][0])
                     print(
                         f"{color + event['a']+colorama.Fore.WHITE:<7} {event['m']:<70}{event['o']:<35}{event['t']:<10}{event['d']:<10}")
-                    toast.show_toast(
-                        "Neuer Einsatz",
-                        f"{event['a']:<4}{event['m']:<70}{event['o']:<35}{event['t']:<10}{event['d']:<10}",
-                        duration=10,
-                        threaded=True,
+                    notification.notify(
+                        title="Neuer Einsatz",
+                        message=f"{event['a']:<4}{event['m']:<70}{event['o']:<35}{event['t']:<10}{event['d']:<10}",
+                        timeout=10,
                     )
             print()
             if len(abgeschlossene_Einsaetze) != 0:
@@ -238,12 +226,11 @@ def Feuerwehr_im_Einsatz_NOE(Bezirk_NOE, callback):
             daten = json.loads(daten)
             daten = daten["Einsatz"]
         except requests.exceptions.RequestException as e:
-            toast.show_toast(
-                        "Fehler",
-                        "Verbindung Zum Server Verloren.",
-                        duration=10,
-                        threaded=True,
-                    )
+            notification.notify(
+                title="Fehler",
+                message="Verbindung Zum Server Verloren.",
+                timeout=10,
+                )
             error_Nachricht = colorama.Fore.RED + "Verbindung Zum Server Verloren. Programm beendet" + colorama.Fore.WHITE
             sys.exit(error_Nachricht)
  # Starten der Anwendung
@@ -275,7 +262,14 @@ def Start(Bereich_NOE, Bezirk_NOE):
 if __name__ == "__main__":
     subprocess.run(["cls"], shell=True)
     Test_modul()
-    from win10toast import ToastNotifier
+    import ctypes
+    import time
+    import requests
+    import json
+    import copy
+    import colorama
+    import msvcrt
+    from plyer import notification
     from bs4 import BeautifulSoup
     from prettytable import PrettyTable
     from datetime import date
